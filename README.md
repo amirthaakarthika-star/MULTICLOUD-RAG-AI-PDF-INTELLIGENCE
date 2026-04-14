@@ -6,7 +6,7 @@ This project is an AI-powered multi-document assistant that analyzes PDFs using 
 ---
 
 ## 🔥 Features
-- 📄 Multi-PDF Question Answering
+- 📄 Multi-PDF upload and analysis
 - ⚖️ Legal Analysis Mode (obligations, risks, clauses)
 - 🔍 Multi-document comparison
 - 📚 Page-level citations
@@ -14,6 +14,12 @@ This project is an AI-powered multi-document assistant that analyzes PDFs using 
 - ⚡ MMR-based retrieval for better relevance
 - 🛠️ Error handling and robust processing
 
+- Retrieval-Augmented Generation (RAG)
+- Legal document analysis mode
+- Debug mode with source tracing
+- Chat history (session-based)
+- Export answers as PDF
+   
 ---
 
 ## 🧠 Tech Stack
