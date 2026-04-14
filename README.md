@@ -4,6 +4,10 @@
 This project is an AI-powered multi-document assistant that analyzes PDFs using Retrieval-Augmented Generation (RAG). It supports legal document analysis, comparison, and explainable AI outputs.
 
 ---
+Built an AI-powered RAG system for querying multiple PDFs
+Implemented semantic search using embeddings and vector DB (Chroma)
+Added chat history tracking and PDF export functionality
+Integrated LLM (Groq) for context-aware responses
 
 ## 🔥 Features
 - 📄 Multi-PDF upload and analysis
