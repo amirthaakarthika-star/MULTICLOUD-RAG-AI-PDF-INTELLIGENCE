@@ -7,6 +7,9 @@ from langchain_groq import ChatGroq
 from langchain_chroma import Chroma
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_text_splitters import RecursiveCharacterTextSplitter
+from reportlab.platypus import SimpleDocTemplate, Paragraph
+from reportlab.lib.styles import getSampleStyleSheet
+import io
 
 # -------------------- LOAD ENV --------------------
 load_dotenv()
@@ -24,6 +27,9 @@ st.title("📄 AI POWERED MULTI PDF INTELLIGENCE")
 if "vector_store" not in st.session_state:
     st.session_state.vector_store = None
 
+if "chat_history" not in st.session_state:
+    st.session_state.chat_history = []
+
 # -------------------- SIDEBAR --------------------
 with st.sidebar:
     st.header("Upload PDFs")
@@ -33,6 +39,9 @@ with st.sidebar:
         type="pdf",
         accept_multiple_files=True
     )
+
+    if st.button("🧹 Clear Chat"):
+        st.session_state.chat_history = []
 
     if st.button("Clear Knowledge Base"):
         try:
@@ -85,16 +94,13 @@ with st.sidebar:
                     st.error("No valid documents processed.")
                     st.stop()
 
-                st.write("🔍 Splitting into chunks...")
                 splitter = RecursiveCharacterTextSplitter(
                     chunk_size=1000,
                     chunk_overlap=200
                 )
 
                 chunks = splitter.split_documents(all_docs)
-                st.write(f"Total chunks created: {len(chunks)}")
 
-                st.write("🧠 Creating embeddings (first run may take time)...")
                 embeddings = HuggingFaceEmbeddings(
                     model_name="all-MiniLM-L6-v2"
                 )
@@ -113,8 +119,6 @@ with st.sidebar:
 
 # -------------------- MODE SELECTION --------------------
 mode = st.radio("Select Mode:", ["General Q&A", "Legal Analysis"])
-
-# 🔥 DEBUG TOGGLE
 show_chunks = st.checkbox("🔍 Show Retrieved Context (Debug Mode)")
 
 # -------------------- QUERY --------------------
@@ -134,7 +138,6 @@ if query and st.session_state.vector_store:
             all_sources = list(set([m["source"] for m in metadatas if "source" in m]))
 
             docs = []
-
             retriever = st.session_state.vector_store.as_retriever(
                 search_type="mmr",
                 search_kwargs={"k": 6}
@@ -171,83 +174,55 @@ if query and st.session_state.vector_store:
                 structured_context += f"\n\n===== DOCUMENT: {source} =====\n"
                 structured_context += "\n".join(texts[:5])
 
-            # -------------------- PROMPTS --------------------
-
+            # PROMPTS
             if mode == "General Q&A":
-
-                if len(context_by_source) == 1:
-                    st.caption("🟢 Mode: General Q&A (Single PDF)")
-
-                    prompt = f"""
-You are an AI assistant answering from a single PDF.
-
-Context:
-{structured_context}
-
-Question: {query}
-
-Instructions:
-- Answer clearly
-- Use only provided context
-- If unsure, say "Not found in document"
-"""
-
-                else:
-                    st.caption("🔵 Mode: General Q&A (Multi-PDF Comparison)")
-
-                    prompt = f"""
-You are an AI that compares multiple PDF documents.
-
-Context:
-{structured_context}
-
-Question: {query}
-
-Instructions:
-- Compare ALL documents
-- Mention document names
-- Highlight similarities and differences
-- If missing info, say "Not found in [document]"
-"""
-
+                prompt = f"Answer from context:\n{structured_context}\n\nQuestion: {query}"
             else:
-                st.caption("⚖️ Mode: Legal Analysis")
+                prompt = f"Legal analysis:\n{structured_context}\n\nQuestion: {query}"
 
-                prompt = f"""
-You are a legal AI assistant analyzing documents.
+            response = llm.invoke(prompt)
+            answer = response.content
 
-Context:
-{structured_context}
-
-Question: {query}
-
-Instructions:
-- Identify obligations of each party
-- Highlight risks or penalties
-- Extract important clauses (termination, liability, payment)
-- Explain in simple language
-- If something is missing, say "Not specified"
-"""
-
-            try:
-                response = llm.invoke(prompt)
-                answer = response.content
-            except Exception as e:
-                st.error(f"LLM Error: {str(e)}")
-                st.stop()
-
-            # -------------------- OUTPUT --------------------
+            # OUTPUT
             st.write("### 🧠 Answer")
             st.info(answer)
 
+            # PDF EXPORT
+            buffer = io.BytesIO()
+            doc = SimpleDocTemplate(buffer)
+            styles = getSampleStyleSheet()
+
+            content = []
+            content.append(Paragraph(f"<b>Question:</b> {query}", styles["Normal"]))
+            content.append(Paragraph("<br/><br/>", styles["Normal"]))
+            content.append(Paragraph(f"<b>Answer:</b> {answer}", styles["Normal"]))
+
+            doc.build(content)
+
+            st.download_button(
+                label="⬇️ Download as PDF",
+                data=buffer.getvalue(),
+                file_name="ai_answer.pdf",
+                mime="application/pdf"
+            )
+
+            # SAVE HISTORY (FIXED)
+            if len(st.session_state.chat_history) == 0 or \
+               st.session_state.chat_history[-1]["question"] != query:
+
+                st.session_state.chat_history.append({
+                    "question": query,
+                    "answer": answer
+                })
+
+            # SOURCES
             st.write("### 📚 Sources & Pages")
             for c in list(set(citations)):
                 st.write(f"- {c}")
 
-            # 🔥 DEBUG VIEW
+            # DEBUG
             if show_chunks:
-                st.write("### 🔍 Retrieved Context (Debug View)")
-
+                st.write("### 🔍 Retrieved Context")
                 for chunk in chunk_debug:
                     st.markdown(f"""
 **📄 {chunk['source']} (Page {chunk['page']})**  
@@ -260,3 +235,11 @@ Instructions:
 
 elif query and not st.session_state.vector_store:
     st.warning("Please upload PDFs and build knowledge base first")
+
+# -------------------- CHAT HISTORY --------------------
+st.write("## 💬 Chat History")
+
+for chat in reversed(st.session_state.chat_history):
+    st.markdown(f"**Q:** {chat['question']}")
+    st.markdown(f"**A:** {chat['answer']}")
+    st.markdown("---")
