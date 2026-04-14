@@ -19,6 +19,12 @@ This project is an AI-powered multi-document assistant that analyzes PDFs using 
 - Debug mode with source tracing
 - Chat history (session-based)
 - Export answers as PDF
+
+- 🤖 Ask questions across all PDF
+- 🧠 Chat history tracking
+- 📄 Download answers as PDF
+- 🔍 Source citation with page numbers
+- ⚡ Fast semantic search using embeddings
    
 ---
 
@@ -29,6 +35,8 @@ This project is an AI-powered multi-document assistant that analyzes PDFs using 
 - ChromaDB
 - HuggingFace Embeddings
 - Groq API (LLM)
+- pypdf
+- reportlab(pdf export)
 
 ---
 
@@ -51,3 +59,12 @@ pip install -r requirements.txt
 
 ### 🔍 Debug View (Explainable AI)
 ![Debug](debug.png)
+
+### 🧠 Chat History
+![History](screenshots/history.png)
+
+### 📄 PDF Download
+![PDF](screenshots/pdf.png)
+
+---
+
