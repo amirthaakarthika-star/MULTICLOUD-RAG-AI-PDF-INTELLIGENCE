@@ -10,7 +10,6 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 from reportlab.platypus import SimpleDocTemplate, Paragraph
 from reportlab.lib.styles import getSampleStyleSheet
 import io
-import time
 
 # -------------------- LOAD ENV --------------------
 load_dotenv()
@@ -41,7 +40,7 @@ with st.sidebar:
         accept_multiple_files=True
     )
 
-    if st.button("🧹 Clear history"):
+    if st.button("🧹 Clear Chat"):
         st.session_state.chat_history = []
 
     if st.button("Clear Knowledge Base"):
@@ -117,25 +116,12 @@ with st.sidebar:
 
             except Exception as e:
                 st.error(f"Error building knowledge base: {str(e)}")
-                
-    st.markdown("---")
-    st.header("💬 Chat History")
-
-    for chat in st.session_state.chat_history:
-        with st.expander(f"🧾 {chat['question'][:50]}..."):
-           st.markdown("**Full Answer:**")
-           st.write(chat['answer'])
 
 # -------------------- MODE SELECTION --------------------
 mode = st.radio("Select Mode:", ["General Q&A", "Legal Analysis"])
 show_chunks = st.checkbox("🔍 Show Retrieved Context (Debug Mode)")
 
 # -------------------- QUERY --------------------
-st.markdown("### 💡 Sample Questions")
-st.write("- Summarize the uploaded PDFs")
-st.write("- What are the key legal risks?")
-st.write("- Compare the uploaded documents")
-st.write("- What deadlines are mentioned?")
 query = st.text_input("Ask your question:")
 
 if query and st.session_state.vector_store:
@@ -194,17 +180,12 @@ if query and st.session_state.vector_store:
             else:
                 prompt = f"Legal analysis:\n{structured_context}\n\nQuestion: {query}"
 
-            start = time.time()
-
             response = llm.invoke(prompt)
-            end = time.time()
             answer = response.content
 
             # OUTPUT
             st.write("### 🧠 Answer")
-            st.success("Answer generated successfully")
-            st.text_area("Answer", answer, height=250)
-            st.caption(f"Response generated in {end - start:.2f} seconds")
+            st.info(answer)
 
             # PDF EXPORT
             buffer = io.BytesIO()
@@ -241,12 +222,13 @@ if query and st.session_state.vector_store:
 
             # DEBUG
             if show_chunks:
-                with st.expander("🔍 Debug Mode (Click to view chunks)"):
-                    for i, chunk in enumerate(chunk_debug):
-                        st.caption(f"📄 {chunk['source']} (Page {chunk['page']})")
-                        st.code(chunk['content'][:300])
-                
-                
+                st.write("### 🔍 Retrieved Context")
+                for chunk in chunk_debug:
+                    st.markdown(f"""
+**📄 {chunk['source']} (Page {chunk['page']})**  
+{chunk['content']}...
+---
+""")
 
     except Exception as e:
         st.error(f"Unexpected error: {str(e)}")
@@ -254,3 +236,10 @@ if query and st.session_state.vector_store:
 elif query and not st.session_state.vector_store:
     st.warning("Please upload PDFs and build knowledge base first")
 
+# -------------------- CHAT HISTORY --------------------
+st.write("## 💬 Chat History")
+
+for chat in reversed(st.session_state.chat_history):
+    st.markdown(f"**Q:** {chat['question']}")
+    st.markdown(f"**A:** {chat['answer']}")
+    st.markdown("---")
