@@ -19,15 +19,18 @@ Integrated LLM (Groq) for context-aware responses
 
 - Retrieval-Augmented Generation (RAG)
 - Legal document analysis mode
-- Debug mode with source tracing
-- Chat history (session-based)
+- Debug mode with source tracing to inspect retrieved chunks
+- Chat history in sidebar(session-based)
 - Export answers as PDF
 
 - 🤖 Ask questions across all PDF
 - 🧠 Chat history tracking
-- 📄 Download answers as PDF
+  
 - 🔍 Source citation with page numbers
 - ⚡ Fast semantic search using embeddings
+- RAG-based accurate answers with citations
+- Response time display
+- Clean Streamlit UI
    
 ---
 
