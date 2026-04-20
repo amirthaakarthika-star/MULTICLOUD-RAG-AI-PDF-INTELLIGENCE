@@ -16,6 +16,9 @@ Users can upload PDFs, ask context-aware questions, and receive accurate respons
 - **Export Support:** Users can export answers as PDF.
 
 ---
+![App Interface](cleanui.png)
+
+---
 
 ## 🔥 Features
 - 📄 Multi-PDF upload and analysis
