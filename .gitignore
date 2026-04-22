@@ -7,3 +7,4 @@ venv/
 db/
 *.bin
 *.sqlite3
+*.pdf
