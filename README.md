@@ -1,206 +1,159 @@
-# 📄 RETRIEVAL AUGMENTED MULTI PDF INTELLIGENCE SYSTEM
+# MULTIPDF RAG AI ANALYZER
 
-## 🎯 Project Overview
+A Streamlit-based Retrieval-Augmented Generation (RAG) application for analyzing one or more PDF documents with grounded answers, source citations, legal-mode prompting, and PDF export.
 
-This project is a Retrieval-Augmented Generation (RAG) based PDF Analysis Chatbot designed to help users extract insights from one or multiple PDF documents using natural language queries.
+## Why This Project Matters
 
-Users can upload PDFs, ask context-aware questions, and receive accurate responses with source citations. The system improves answer reliability by retrieving relevant document chunks before generating responses.
+This project turns uploaded PDFs into a searchable knowledge base and answers user questions using retrieved document context instead of relying only on the language model's memory. It is designed to reduce hallucinations and make document analysis more explainable.
 
-### Key Technical Highlights
+## Core Features
 
-- **Multi-PDF Support:** Upload and analyze multiple PDF files simultaneously.
-- **Semantic Search:** Uses embeddings and vector similarity search to retrieve relevant content.
-- **Reduced Hallucinations:** Grounds responses using retrieved document context.
-- **Interactive UI:** Built with Streamlit for a smooth user experience.
-- **Explainability:** Displays source citations and optional debug retrieval view.
-- **Export Support:** Users can export answers as PDF.
+- Multi-PDF upload and analysis
+- Retrieval-Augmented Generation (RAG) pipeline
+- Chroma vector database for semantic search
+- Hugging Face embeddings for chunk indexing
+- Groq LLM inference for fast responses
+- MMR retrieval for more diverse and relevant chunks
+- General Q&A mode and Legal Analysis mode
+- Page-level source citations
+- Debug mode to inspect retrieved chunks
+- Chat history stored in Streamlit session state
+- Export generated answers as PDF
 
----
-![App Interface](cleanui.png)
+## Tech Stack
 
----
+- Python
+- Streamlit
+- LangChain
+- ChromaDB
+- Hugging Face Embeddings
+- Groq API
+- PyPDFLoader
+- ReportLab
 
-## 🔥 Features
-- 📄 Multi-PDF upload and analysis
-- ⚖️ Legal Analysis Mode (obligations, risks, clauses)
-- 🔍 Multi-document comparison
-- 📚 Page-level citations
-- 🧠 Explainable AI (debug view showing retrieved chunks)
-- ⚡ MMR-based retrieval for better relevance
-- 🛠️ Error handling and robust processing
+## Architecture
 
-- Retrieval-Augmented Generation (RAG)
-- Legal document analysis mode
-- Debug mode with source tracing to inspect retrieved chunks
-
-- Export answers as PDF
-
-- 🤖 Ask questions across all PDF
-- 🧠 Chat history in sidebar(session based)
-  
-- 🔍 Source citation with page numbers
-- ⚡ Fast semantic search using embeddings
-- RAG-based accurate answers with citations
-- Response time display
-- Clean Streamlit UI
-   
----
-
-## 🧠 Tech Stack
-| Category | Tool / Technology | Professional Purpose |
-| :--- | :--- | :--- |
-| **Language** | Python | Primary backend development and data processing. |
-| **Frontend** | Streamlit | Architecting a responsive, real-time user interface. |
-| **Orchestration** | LangChain | Managing complex RAG workflows and document chains. |
-| **Vector Database** | ChromaDB | High-performance semantic storage and retrieval. |
-| **Embeddings** | HuggingFace | Generating high-dimensional vectors for text intelligence. |
-| **Inference** | Groq LLM | Leveraging ultra-low latency hardware for rapid AI responses. |
-| **Processing** | PyPDF | Handling unstructured data extraction from PDF sources. |
-| **Output** | ReportLab | Programmatic generation of PDF reports from AI insights. |
-| **DevOps** | GitHub | Version control and project lifecycle management. |
-
-
-## 🏗️ System Architecture
+```mermaid
 flowchart TD
-    subgraph Client_Interface [User Layer]
-    A[User Uploads PDFs]
-    F[User Query]
-    end
-
-    subgraph Ingestion_Pipeline [Data Processing]
-    B[PDF Loader] --> C[Recursive Text Splitter]
-    C --> D[Embeddings Model]
-    end
-
-    subgraph Storage [Vector Database]
-    D --> E[(ChromaDB)]
-    end
-
-    subgraph Inference_Engine [AI Core]
-    F --> G[Retriever: MMR Strategy]
+    A[Upload PDF Files] --> B[Load PDF Content]
+    B --> C[Split Into Chunks]
+    C --> D[Create Embeddings]
+    D --> E[Store in ChromaDB]
+    F[User Question] --> G[MMR Retriever]
     E --> G
-    G --> H[Groq Cloud: Llama 3]
-    H --> I[Grounded Answer]
-    end
+    G --> H[Build Prompt With Retrieved Context]
+    H --> I[Groq LLM]
+    I --> J[Answer With Citations]
+    J --> K[Display Result and Export PDF]
+```
 
-    subgraph Export_Layer [Output]
-    I --> J[Chat History / PDF Export]
-    end
+## How It Works
 
-    style E fill:#f9f,stroke:#333,stroke-width:2px
-    style H fill:#bbf,stroke:#333,stroke-width:2px
-    style G fill:#dfd,stroke:#333,stroke-width:2px
-    
+1. Users upload one or more PDF documents.
+2. The app extracts text using `PyPDFLoader`.
+3. Documents are split into chunks with overlap for better context retention.
+4. Each chunk is embedded using `all-MiniLM-L6-v2`.
+5. Embeddings are stored in ChromaDB.
+6. When the user asks a question, the app retrieves relevant chunks using MMR.
+7. The retrieved context is passed to the Groq-hosted LLM.
+8. The app returns an answer, citations, response time, and optional debug context.
 
+## Key Engineering Decisions
 
+### Why RAG instead of fine-tuning?
+RAG is better for frequently changing document content because new PDFs can be indexed immediately without retraining a model.
 
+### Why MMR retrieval?
+MMR helps reduce repeated chunks from the same document and improves coverage when multiple PDFs are uploaded.
 
----
-## 🧠 Engineering Challenges & Solutions
+### Why session state?
+The UI originally lost answers on Streamlit reruns triggered by buttons. This was fixed by storing query state, answer state, citations, and export data inside `st.session_state`.
 
-### 1. Retrieval Quality Across Multiple PDFs
+## Challenges Solved
 
-**The Challenge:**
-When querying multiple uploaded PDFs, early retrieval results sometimes favored chunks from one dominant document, causing incomplete answers or missed information from other files.
+- Improved multi-document retrieval quality by using MMR
+- Reduced hallucinations by grounding answers in retrieved chunks
+- Fixed Streamlit rerun issues that cleared answers after UI interactions
+- Added explainability with citations and debug chunk inspection
+- Added PDF export for generated answers
 
-**The Solution:**
+## Project Structure
 
-* Tuned `chunk_size` and `chunk_overlap` for better context preservation.
-* Optimized retriever search parameters through iterative testing.
-* Replaced basic similarity search with **Maximal Marginal Relevance (MMR)** retrieval.
-* MMR improves diversity by selecting relevant chunks while reducing repetitive results from the same source.
+- `app.py` - main Streamlit application
+- `requirements.txt` - Python dependencies
+- `README.md` - project documentation
+- `db/` - local Chroma persistence directory
 
-**Outcome:**
-More balanced retrieval across multiple PDFs and stronger cross-document question answering.
+## Setup
 
----
-
-### 2. API Quota Limits & Response Speed
-
-**The Challenge:**
-Initial development using Google Gemini encountered free-tier quota limits and interrupted testing workflows.
-
-**The Solution:**
-
-* Evaluated alternative LLM providers based on speed and usability.
-* Migrated inference to **Groq API** for faster response times.
-* Moved API credentials to environment variables for easier configuration and provider switching.
-
-**Outcome:**
-Smoother development cycles, faster responses, and improved user experience.
-
----
-
-### 3. Managing Rapidly Changing Dependencies
-
-**The Challenge:**
-Frequent LangChain updates, renamed modules, and dependency changes created import and compatibility issues during development.
-
-**The Solution:**
-
-* Updated imports to match the latest package structure.
-* Pinned stable versions where needed.
-* Improved maintainability through modular configuration.
-
-**Outcome:**
-Better project stability and easier future upgrades.
-
----
-
-### 4. Performance Optimization for Large PDFs
-
-**The Challenge:**
-Processing large PDF files and multiple uploads increased memory usage and slowed response workflows.
-
-**The Solution:**
-
-* Optimized document ingestion flow.
-* Reduced unnecessary overhead in retrieval steps.
-* Used efficient vector search workflows.
-
-**Outcome:**
-Improved responsiveness and smoother handling of larger documents.
-
----
-
-### 5. UI / UX Refinement
-
-**The Challenge:**
-As features expanded, chat history and debug outputs made the interface cluttered.
-
-**The Solution:**
-
-* Moved chat history to the sidebar.
-* Improved debug mode formatting.
-* Added response timing and cleaner controls.
-
-**Outcome:**
-Cleaner user experience and more professional interface presentation.
-
-## 🖥️ How to Run
+### 1. Clone the repository
 
 ```bash
-git clone https://github.com/amirthaakarthika-star/MULTICLOUD-RAG-AI-PDF-INTELLIGENCE.git
-cd MULTICLOUD-RAG-AI-PDF-INTELLIGENCE
+git clone https://github.com/amirthaakarthika-star/MULTIPDF-RAG-AI-ANALYZER.git
+cd MULTIPDF-RAG-AI-ANALYZER
+```
+
+### 2. Install dependencies
+
+```bash
 pip install -r requirements.txt
-## 📸 Screenshots
+```
 
-### 🖥️ UI
-![UI](ui.png)
+### 3. Configure environment variables
+Create a `.env` file in the project root:
 
-### ⚙️ Processing Documents
-![Processing](processing.png)
+```env
+GROQ_API_KEY=your_groq_api_key_here
+```
 
-### 🧠 AI Answer Output
-![Answer](answer.png)
+### 4. Run the app
 
-### 🔍 Debug View (Explainable AI)
-![Debug](debug.png)
+```bash
+streamlit run app.py
+```
 
-### 🧠 Chat History
-![History](screenshots/history.png)
+## Screenshots
 
-### 📄 PDF Download
-![PDF](screenshots/pdf.png)
+### Main UI
+![Main UI](cleanui.png)
 
+### Processing PDFs
+![Processing PDFs](processing.png)
 
+### Debug View
+![Debug View](debug.png)
+
+### Chat History
+![Chat History](chathistory.png)
+
+### PDF Export
+![PDF Export](downloadans.png)
+
+## Limitations
+
+- Works only with text-extractable PDFs
+- Very large documents may increase indexing time
+- Answer quality depends on chunking quality and retrieval quality
+- The app currently uses a local vector store instead of a hosted production database
+
+## Future Improvements
+
+- Add streaming responses
+- Add support for DOCX and TXT files
+- Add deployment configuration for Streamlit Cloud or Hugging Face Spaces
+- Add automated evaluation with sample question-answer benchmarks
+- Add per-document filtering in the UI
+
+## Recruiter Notes
+
+This project demonstrates practical junior-level Generative AI engineering skills:
+
+- building a complete RAG application end to end
+- integrating embeddings, retrieval, vector storage, and LLM inference
+- designing a usable UI for AI workflows
+- debugging state-management issues in Streamlit
+- presenting answers with traceable sources
+
+## License
+
+This project is for educational and portfolio use.

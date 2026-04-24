@@ -6,6 +6,6 @@ langchain-chroma
 langchain-huggingface
 langchain-groq
 pypdf
-sentence transformenrs
+sentence-transformers
 reportlab
 langchain-text-splitters
