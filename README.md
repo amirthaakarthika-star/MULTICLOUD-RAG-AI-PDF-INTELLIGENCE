@@ -1,5 +1,12 @@
 # MULTIPDF RAG AI ANALYZER
 
+# MULTIPDF RAG AI ANALYZER
+
+Live App: [Streamlit Demo](https://multipdf-rag-ai-analyzer-gg3maodxvcmannueasndaq.streamlit.app/)
+
+A Streamlit-based Retrieval-Augmented Generation (RAG) application for analyzing one or more PDF documents with grounded answers, source citations, legal-mode prompting, and PDF export.
+
+
 A Streamlit-based Retrieval-Augmented Generation (RAG) application for analyzing one or more PDF documents with grounded answers, source citations, legal-mode prompting, and PDF export.
 
 ## Why This Project Matters
